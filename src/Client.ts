@@ -24,12 +24,9 @@ client.on("messageCreate", async msg => {
         msg.reply({embeds:[commandsInfo]});
         return;
     }
-    const cmd = commands[args[0]];
+    const cmd = commands[args[0].toLowerCase()];
     args.shift();
     if(!cmd) return;
     cmd.execute?.(msg, args);
-    // commands.forEach(cmdName => {
-    //     if(args[0].toLowerCase() === cmdName.toLowerCase()) console.log(":)");
-    // });
 });
 client.login(token);

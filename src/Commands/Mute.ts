@@ -2,8 +2,8 @@ import { Command } from "../Command";
 
 module.exports = new Command()
     .setInfo("This will ban a player in the ingame server")
-    .setParamType(["player"])
+    .setParamType(["player", "reason"])
     .setExecute((msg, args) => {
-        if(!(args[0])) {msg.reply("Player shouldnt be empty"); return;}
+        if(!(args[0] && args[1] && args[2] && args[3] && args[4])) {msg.reply("Some arguments are empty pls do s!help to check the command paramaters"); return;}
         msg.reply("Yoo thats valid")
     })
