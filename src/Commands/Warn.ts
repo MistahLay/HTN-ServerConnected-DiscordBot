@@ -1,4 +1,4 @@
-import { Command } from "../Command";
+import { Command } from "../RegisterCommands";
 
 module.exports = new Command()
     .setInfo("This will ban a player in the ingame server")

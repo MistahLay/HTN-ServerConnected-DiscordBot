@@ -1,4 +1,4 @@
-import { Command } from "../Command";
+import { Command } from "../RegisterCommands";
 module.exports = new Command()
     .setInfo("This will temporarily ban a player")
     .setParamType(["player", "reason", "days", "hours", "minutes"])
