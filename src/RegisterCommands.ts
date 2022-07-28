@@ -1,12 +1,14 @@
 import { APIEmbed, Colors, Embed, Message, ModalSubmitFields } from "discord.js";
 import fs from 'fs';
 export class Command {
-    info?: string;
+    info: string = "";
+    isInvisible:boolean = false;
     execute?:(msg: Message, args: string[]) => void;
     paramType?:string[];
     setExecute(execute:(msg: Message, args: string[]) => void){this.execute = execute; return this;};
     setInfo(info: string) {this.info = info; return this};
     setParamType(types:string[]){this.paramType = types; return this;}
+    setInvisible(set:boolean){this.isInvisible = set; return this;}
 }
 export let commands:{[key: string]:Command} = {};
 fs.readdirSync(__dirname+"/Commands", {withFileTypes: true})
@@ -27,16 +29,16 @@ export let commandsInfo:APIEmbed = {
 for (const key in commands) {
     (async() => {
         const value = commands[key];
+        if(value.isInvisible) return;
         commandsInfo.fields?.push({
             name: key,
             value: `**s!${key.toLowerCase()}`+await getCommandParams(value)+"**"
         })
-        console.log(commandsInfo)
     })()
 }
 
 function getCommandParams(info:Command):Promise<string>{
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
         let params = "";
         let iteration = 0;
         info.paramType?.forEach(type => {
