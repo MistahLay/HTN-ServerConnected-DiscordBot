@@ -1,6 +1,8 @@
 import { Client, Embed, Message } from "discord.js";
-import { Command, commands, commandsInfo } from "./Command";
+import { Command, commands, commandsInfo } from "./RegisterCommands";
 import fs from 'fs';
+import { ObjectModel } from "objectmodel";
+import { EconomyEvent } from "./Receivables/EconomyEvent";
 
 require('dotenv').config({path: __dirname + "/.env"});
 const token = process.env.TOKEN;
