@@ -7,3 +7,4 @@ module.exports = new Command()
         if(!(args[0] && args[1])) {msg.reply("Some arguments are empty pls do s!help to check the command paramaters"); return;}
         msg.reply("Yoo thats valid")
     })
+    .setInvisible(true)
