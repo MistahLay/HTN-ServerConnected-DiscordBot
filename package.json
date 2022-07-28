@@ -3,6 +3,7 @@
     "@types/node": "^18.0.6",
     "discord.js": "^14.0.3",
     "dotenv": "^16.0.1",
+    "objectmodel": "^4.3.0",
     "strongly-typed": "^2.2.0"
   }
 }
