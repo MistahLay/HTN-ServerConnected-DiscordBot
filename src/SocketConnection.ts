@@ -1,5 +1,6 @@
 import EventEmitter from 'events';
 import net from 'net';
+import {ObjectModel, ArrayModel} from 'objectmodel';
 
 interface SentJsonObject {
     from: string
@@ -38,15 +39,20 @@ export class SocketConnection extends EventEmitter
         ip: "localhost",
         port: 8080,
         name: "DiscordBot",
-        password: ""
+        password: "109214947836572"
     }
     constructor() {super();this.handleConnection()}
     private handleConnection():void{
         this.socket = new net.Socket;
-        this.socket.on('connect', () => {this.emit("Connected",null);this.clearInterval()});
+        this.socket.on('connect', () => {this.emit("Connected",null);this.socket?.write(JSON.stringify({
+            name: this.sockInfo.name,
+            password: this.sockInfo.password
+        }));
+        this.clearInterval()});
         this.handleSentData();
         this.socket.on('close', err => {this.emit("Disconnected",null);this.runInterval()});
         this.socket.on('error', err => {this.runInterval()});
+        this.socket.connect({host: this.sockInfo.ip, port: this.sockInfo.port});
     }
     
     private runInterval():void{
@@ -61,11 +67,25 @@ export class SocketConnection extends EventEmitter
     
     private handleSentData():void{
         if(!this.socket) return;
+        const JsonDataModel = new ObjectModel({
+            data_type: String,
+            
+            api: ["request", "response", undefined],
+            id: Number,
+            from: String
+        })
         this.socket.on("data", data => {
             try {
-                const object:SentJsonObject = JSON.parse(data.toString());
-                this.emit("ReceivedData", object);
-                
+                let object:SentJsonObject = JSON.parse(data.toString());
+                try {
+                    const DataModel = require(__dirname+"/Receivables/"+object.data_type+((object.api === "request" || object.api === "response") ? "."+object.api : ""));
+                    new DataModel(object.data);
+                    console.log(object);
+                    this.emit("ReceivedData", object);
+                } catch (error) {
+                    if(error instanceof TypeError) return console.log("BRUHH")
+                    if(object.from) console.log("Vfh")
+                }
             } catch (error) {
                 if(error instanceof SyntaxError) console.log("Its a invalid json object somehow");
             }
@@ -74,3 +94,4 @@ export class SocketConnection extends EventEmitter
 
     private sendData(data:SendableObject):void{}
 }
+new SocketConnection()
