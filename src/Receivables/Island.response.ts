@@ -1,4 +1,5 @@
 import { ArrayModel, ObjectModel } from "objectmodel"
+import { Receivable } from "../RegisterReceivables"
 import { CoordinateInterface, Model } from "../Utils/CoordinateModel"
 export interface Island {
     machines?: {
@@ -24,7 +25,7 @@ export interface Island {
     }[]
 }
 
-module.exports = new ObjectModel({
+module.exports = new Receivable(new ObjectModel({
     machines: [ArrayModel({
         type: ["cannon","drill","net"],
         level: Number,
@@ -46,4 +47,4 @@ module.exports = new ObjectModel({
         level: Number,
         location: Model
     })]
-})
+}),"Pocketmine")

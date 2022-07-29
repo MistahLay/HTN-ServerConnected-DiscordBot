@@ -1,4 +1,5 @@
 import { ObjectModel } from "objectmodel"
+import { Receivable } from "../RegisterReceivables"
 
 export interface EconomyEvent {
     player: string
@@ -9,11 +10,11 @@ export interface EconomyEvent {
     amount?: number
 }
 
-module.exports = new ObjectModel({
+module.exports = new Receivable(new ObjectModel({
     player: String,
     event: ["pay","auction","shop","sold"],
     money: Number,
     receiver: [String],
     item: [String],
     amount: [String]
-})
+}), "Pocketmine")

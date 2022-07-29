@@ -1,4 +1,5 @@
 import { ObjectModel } from "objectmodel"
+import { Receivable } from "../RegisterReceivables"
 import { CoordinateInterface, Model } from "../Utils/CoordinateModel"
 
 export interface IslandMachineEvent {
@@ -9,7 +10,7 @@ export interface IslandMachineEvent {
     event: "removed"|"placed"
     level: string
 }
-module.exports = new ObjectModel(
+module.exports = new Receivable(new ObjectModel(
     {
         islandID: String,
         machine: ["drill","net","cannon"],
@@ -18,4 +19,4 @@ module.exports = new ObjectModel(
         event: ["removed","placed"],
         level: Number
     }
-)
+), "Pocketmine")

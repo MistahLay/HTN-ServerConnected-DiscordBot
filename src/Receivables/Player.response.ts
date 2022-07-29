@@ -1,4 +1,5 @@
 import { ObjectModel } from "objectmodel"
+import { Receivable } from "../RegisterReceivables"
 
 export interface Player {
     id: number
@@ -15,7 +16,7 @@ export interface Player {
     discord: string
 }
 
-module.exports = new ObjectModel({
+module.exports = new Receivable(new ObjectModel({
     id: Number,
     rank: String,
     isStaff: Boolean,
@@ -28,4 +29,4 @@ module.exports = new ObjectModel({
     },
     friends: [String],
     discord: String
-})
+}), "Pocketmine")

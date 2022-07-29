@@ -1,4 +1,5 @@
 import { ObjectModel } from "objectmodel"
+import { Receivable } from "../RegisterReceivables"
 
 export interface IslandPlayersEvent {
     islandID: string
@@ -7,9 +8,9 @@ export interface IslandPlayersEvent {
     punisher?: string
 }
 
-module.exports = new ObjectModel({
+module.exports = new Receivable(new ObjectModel({
     islandID: String,
     player: String,
     event: String,
     punisher: ["banned","kicked","invited","left","demoted","promoted"]
-})
+}), "Pocketmine")
