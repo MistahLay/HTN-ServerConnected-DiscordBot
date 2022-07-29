@@ -1,17 +1,10 @@
 import EventEmitter from 'events';
 import net from 'net';
-import {ObjectModel, ArrayModel} from 'objectmodel';
+import { receivables } from './RegisterReceivables';
+import { Sendable } from './Sendable';
 
-interface SentJsonObject {
+export interface SentJsonObject {
     from: string
-    data_type: string
-    data: object
-    api?: "response"|"request"
-    id?: number
-}
-
-interface SendableObject {
-    to: string|string[]
     data_type: string
     data: object
     api?: "response"|"request"
@@ -67,20 +60,13 @@ export class SocketConnection extends EventEmitter
     
     private handleSentData():void{
         if(!this.socket) return;
-        const JsonDataModel = new ObjectModel({
-            data_type: String,
-            
-            api: ["request", "response", undefined],
-            id: Number,
-            from: String
-        })
         this.socket.on("data", data => {
             try {
                 let object:SentJsonObject = JSON.parse(data.toString());
                 try {
-                    const DataModel = require(__dirname+"/Receivables/"+object.data_type+((object.api === "request" || object.api === "response") ? "."+object.api : ""));
-                    new DataModel(object.data);
-                    console.log(object);
+                    const DataModel = receivables[object.data_type+((object.api === "request" || object.api === "response") ? "."+object.api : "")]
+                    if(Array.isArray(DataModel.acceptables) ? DataModel.acceptables.includes(object.from) : DataModel.acceptables === object.from ? true : false) return;                    
+                    new DataModel.model(object.data);
                     this.emit("ReceivedData", object);
                 } catch (error) {
                     if(error instanceof TypeError) return console.log("BRUHH")
@@ -92,6 +78,11 @@ export class SocketConnection extends EventEmitter
         })
     }
 
-    private sendData(data:SendableObject):void{}
+    public sendData(data:Sendable):boolean{
+        if(!(data instanceof Sendable)) return false;
+        if(!this.socket) return false;
+        this.socket.write(JSON.stringify(data))
+        return true;
+    }
 }
 new SocketConnection()
