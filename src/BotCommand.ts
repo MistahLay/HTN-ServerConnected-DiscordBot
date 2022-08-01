@@ -3,12 +3,14 @@ import fs from 'fs';
 export class Command {
     info: string = "";
     isInvisible:boolean = false;
+    requiredServerOnline: boolean = true;
     execute?:(msg: Message, args: string[]) => void;
     paramType:{name:string, type:string}[] = [];
     onExecute(execute:(msg: Message, args: string[]) => void){this.execute = execute; return this;};
     setInfo(info: string) {this.info = info; return this};
     setParamType(types:{name:string, type:string}[]){this.paramType = types; return this;}
     setInvisible(set:boolean){this.isInvisible = set; return this;}
+    setRequiredServerOnline(b:boolean){this.requiredServerOnline = b; return this;}
 }
 
 export let commandsInfo:APIEmbed = {
