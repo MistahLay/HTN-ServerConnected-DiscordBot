@@ -1,9 +1,11 @@
+import { Colors, TextChannel } from "discord.js";
 import { ObjectModel } from "objectmodel"
+import { client } from "../Client";
 import { Receivable } from "../RegisterReceivables"
-
+type Events = "pay"|"auction"|"shop"|"sold";
 export interface EconomyEvent {
     player: string
-    event: "pay"|"auction"|"shop"|"sold"
+    event: Events
     money: number
     receiver?: string
     item?: string
@@ -16,5 +18,26 @@ module.exports = new Receivable(new ObjectModel({
     money: Number,
     receiver: [String],
     item: [String],
-    amount: [String]
+    amount: [Number]
 }), "Pocketmine")
+.setCallback((data:EconomyEvent) => {
+    console.log("FOo");
+    (client.channels.cache.get(require("../channels.json").StaffServer.EconomyLogs) as TextChannel)
+        .send({embeds:[{
+            title: 
+                data.event === "pay" ? "Player Pay Event" : 
+                data.event === "auction" ? "Auction Event" : 
+                data.event === "shop" ? "Shop event" : 
+                "Player Sold Event",
+            description:            
+                data.event === "pay" ? `${data.player} has payed ${data.receiver} $${data.amount}` : 
+                data.event === "auction" ? `${data.player} has bought ${data.amount} of ${data.receiver}'s **${data.item}** for $${data.money}` : 
+                data.event === "shop" ? `${data.player} has bought ${data.amount} of **${data.item}** for $${data.money}` : 
+                `${data.player} has sold ${data.amount} of ${data.item} for $${data.money}`,
+            color: 
+                data.event === "auction" ? 0x663611 :
+                data.event === "pay" ? Colors.Green :
+                data.event === "shop" ? Colors.DarkGreen :
+                Colors.Gold
+    }]})
+})
