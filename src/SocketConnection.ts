@@ -1,14 +1,14 @@
 import EventEmitter from 'events';
 import net from 'net';
-import { receivables } from './RegisterReceivables';
-import { Sendable } from './Sendable';
-
+import { Receivable, get } from './RegisterReceivables';
+import { Sendable, SendableRequest, SendableResponse } from './Sendable';
 export interface SentJsonObject {
     from: string
-    data_type: string
-    data: object
+    data_type: string|"None"
+    data?: any
     api?: "response"|"request"
     id?: number
+    success: string|true
 }
 type SocketEvents = "ReceivedData"|"Connected"|"Disconnected";
 type SocketEvent<T extends SocketEvents> = 
@@ -18,7 +18,6 @@ export interface SocketConnection {
     once<T extends SocketEvents>(eventName:T, listener:(data:SocketEvent<T>) => void):this;
     emit<T extends SocketEvents>(eventName:T, data: SocketEvent<T>):boolean;
 }
-
 export class SocketConnection extends EventEmitter
 {
     private interval?:NodeJS.Timer;
@@ -33,11 +32,12 @@ export class SocketConnection extends EventEmitter
         port: 8080,
         name: "DiscordBot",
         password: "109214947836572"
-    }
+    };
+    requests: {[key:string]:(data:any) => void} = {};
     constructor() {super();this.handleConnection()}
     private handleConnection():void{
         this.socket = new net.Socket;
-        this.socket.on('connect', () => {this.emit("Connected",null);this.socket?.write(JSON.stringify({
+        this.socket.on('connect', () => {this.emit("Connected",null);this.clearInterval();this.socket?.write(JSON.stringify({
             name: this.sockInfo.name,
             password: this.sockInfo.password
         }));
@@ -50,7 +50,7 @@ export class SocketConnection extends EventEmitter
     
     private runInterval():void{
         if(this.interval) return;
-        this.interval = setInterval(() => {}, 1000);
+        this.interval = setInterval(() => this.socket?.connect({host: this.sockInfo.ip, port: this.sockInfo.port}), 2000);
     }
 
     private clearInterval():void{
@@ -58,18 +58,24 @@ export class SocketConnection extends EventEmitter
         clearInterval(this.interval);
     }
     
-    private handleSentData():void{
+    private async handleSentData():Promise<void>{
         if(!this.socket) return;
+        const receivables = await get();
         this.socket.on("data", data => {
             try {
                 let object:SentJsonObject = JSON.parse(data.toString());
+                if(object.data_type === "None") {this.emit("ReceivedData", object);return;}
                 try {
+                    if(!object.data) return;
                     const DataModel = receivables[object.data_type+((object.api === "request" || object.api === "response") ? "."+object.api : "")]
-                    if(Array.isArray(DataModel.acceptables) ? DataModel.acceptables.includes(object.from) : DataModel.acceptables === object.from ? true : false) return;                    
+                    if(!DataModel) return;
+                    typeof object.from;
+                    if(!(typeof DataModel.acceptables === "object" ? DataModel.acceptables.includes(object.from) : DataModel.acceptables === object.from)) return;                    
                     new DataModel.model(object.data);
+                    DataModel.cb?.(typeof object.success === "string" ? object.success : object.data)
                     this.emit("ReceivedData", object);
                 } catch (error) {
-                    if(error instanceof TypeError) return console.log("BRUHH")
+                    if(error instanceof TypeError) return console.error(error)
                     if(object.from) console.log("Vfh")
                 }
             } catch (error) {
@@ -78,11 +84,22 @@ export class SocketConnection extends EventEmitter
         })
     }
 
-    public sendData(data:Sendable):boolean{
-        if(!(data instanceof Sendable)) return false;
-        if(!this.socket) return false;
+    public sendData(data:Sendable):void|string{
+        if(!(data instanceof Sendable)) return "Data is valid";
+        if(!this.socket) return "Socket is offline";
         this.socket.write(JSON.stringify(data))
-        return true;
+    }
+    public sendRequest(data:SendableRequest, cbResponse: (data:Receivable) => void):void|string{
+        if(!this.socket) return "Socket is offline";
+        if(!(data instanceof SendableRequest)) return "Data isnt valid";
+        if(this.requests[data.id]) return "Id must be different";
+        this.requests[data.id] = cbResponse;
+        this.socket.write(JSON.stringify(data));
+    }
+
+    public sendResponse(data:SendableResponse):void|string{
+        if(!(data instanceof SendableResponse)) return "Data is valid";
+        if(!this.socket) return "Socket is offline";
+        this.socket.write(JSON.stringify(data))
     }
 }
-new SocketConnection()

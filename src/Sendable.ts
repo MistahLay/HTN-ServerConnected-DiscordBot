@@ -1,3 +1,4 @@
+import uuid from 'uuid';
 export class Sendable {
     data?: any
     data_type?: string   
@@ -12,15 +13,30 @@ export class Sendable {
         return this;
     }
 }
-export class SendableApi extends Sendable {
+class SendableApi extends Sendable {
     api?:"request"|"response";
-    id:number = Math.round(Math.random() * 1000);
-    setApiType(api_type:"request"|"response"){
-        if(!(api_type === "request" || api_type === "response")) throw new TypeError("api_type must be a request or response type");
-    }
-    setId(id:number){
+    id:string = uuid.v4();
+    setId(id:string){
         if(!(typeof id === "number")) throw new TypeError("id must be a number");
         this.id = id;
+        return this;
+    }
+}
+
+export class SendableRequest extends SendableApi{
+    api:"request" = "request";
+}
+
+export class SendableResponse{
+    api: "response" = "response"
+    id:number = 0
+    success: true|string = true
+    setId(id: number){
+        this.id = id;
+        return this;
+    }
+    setError(err: string){
+        this.success = err;
         return this;
     }
 }
