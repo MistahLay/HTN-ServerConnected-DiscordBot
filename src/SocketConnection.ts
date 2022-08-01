@@ -89,7 +89,13 @@ export class SocketConnection extends EventEmitter
         if(!this.socket) return "Socket is offline";
         this.socket.write(JSON.stringify(data))
     }
-    public sendRequest(data:SendableRequest, cbResponse: (data:Receivable) => void):void|string{
+    /**
+     * 
+     * @param data The request
+     * @param cbResponse data will be a string if it's an error and an object if success
+     * @returns void
+     */
+    public sendRequest(data:SendableRequest, cbResponse: (data:any) => void):void|string{
         if(!this.socket) return "Socket is offline";
         if(!(data instanceof SendableRequest)) return "Data isnt valid";
         if(this.requests[data.id]) return "Id must be different";
