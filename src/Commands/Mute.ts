@@ -1,4 +1,6 @@
+import { Colors } from "discord.js";
 import { Command } from "../BotCommand";
+import { socket } from "../Client";
 
 module.exports = new Command()
     .setInfo("This will ban a player in the ingame server")
@@ -9,7 +11,32 @@ module.exports = new Command()
         {name: "hours", type: "number"}, 
         {name: "minutes", type: "number"}
     ])
-    .onExecute((msg, args) => {
-        if(!(args[0] && args[1] && args[2] && args[3] && args[4])) {msg.reply("Some arguments are empty pls do s!help to check the command paramaters"); return;}
-        msg.reply("Yoo thats valid")
+    .onExecute(async (msg, [player, reason, days, hours, minutes]) => {
+        const reply = await msg.reply("**Sending Request...**");
+        socket.sendRequest({
+            data_type: "PlayerPunish",
+            data: {
+                time:{
+                    minutes,
+                    days,
+                    hours,
+                },
+                player,
+                reason,
+                staff: msg.author.username,
+                type: "mute"
+            },
+            to: "Pocketmine"
+        }, async (data:string|null) => {
+            if (data) return await reply.edit(data);
+            await reply.edit({embeds:[{
+                title: "Server Mute",
+                color: Colors.Yellow,
+                description: `${player} was muted by ${msg.author.username}`,
+                fields:[{
+                    name: "Mute Expiration",
+                    value: `${days} days, ${hours} hours, ${minutes} minutes`
+                }]
+            }]});
+        })
     })

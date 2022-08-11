@@ -1,10 +1,28 @@
+import { Colors } from "discord.js";
 import { Command } from "../BotCommand";
+import { socket } from "../Client";
 
 module.exports = new Command()
     .setInfo("This will ban a player in the ingame server")
     .setParamType([{name: "player", type: "string"}, {name: "reason", type: "string"}])
-    .onExecute((msg, args) => {
-        if(!(args[0] && args[1])) {msg.reply("Some arguments are empty pls do s!help to check the command paramaters"); return;}
-        msg.reply("Yoo thats valid")
+    .onExecute(async (msg, [player, reason]) => {
+        const reply = await msg.reply("**Sending Request...**");
+        socket.sendRequest({
+            data_type: "PlayerPunish",
+            data: {
+                player,
+                reason,
+                staff: msg.author.username,
+                type: "warn"
+            },
+            to: "Pocketmine"
+        }, async (data:string|null) => {
+            if (data) return await reply.edit(data);
+            await reply.edit({content: "",embeds:[{
+                title: "Server Warn",
+                color: Colors.Yellow,
+                description: `${player} was warned by ${msg.author.username}`
+            }]});
+        })
     })
     .setInvisible(true)
