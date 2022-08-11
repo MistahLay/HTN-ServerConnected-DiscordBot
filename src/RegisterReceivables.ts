@@ -14,18 +14,21 @@ export class Receivable
     }
 }
 const f = {};
-export function get():Promise<{[key:string]:Receivable}> {
+export function getReceivables():Promise<{[key:string]:Receivable}> {
     return new Promise(r => {
         let count = 0;
-        let receivables:{[key:string]:Receivable} = {}
+        let receivables:{[key:string]:Receivable} = {};
         const files = fs.readdirSync(__dirname+"/Receivables", {withFileTypes: true})
-            .filter(value => value.name.endsWith(".ts"))
+            .filter(value => value.name.endsWith(".ts"));
         files.forEach(value => {
             const receivable = require(__dirname+"/Receivables/"+value.name);
             count++;
-            if(!(receivable instanceof Receivable)) {count === files.length ? r(receivables) : console.log("E");return;}
+            if(!(receivable instanceof Receivable)) {
+                count === files.length ? r(receivables) : console.log("E");
+                return;
+            }
             receivables[value.name.replace(".ts", "")] = receivable;
-            count === files.length ? r(receivables) : 0
+            count === files.length ? r(receivables) : 0;
         })
     })
 }
