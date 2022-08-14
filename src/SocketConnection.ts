@@ -104,9 +104,8 @@ export class SocketConnection extends EventEmitter {
     private async handleSentData(): Promise<void> {
         if (!this.socket) return;
         const receivables = await getReceivables();
-        this.socket.on("data", async (data) => {
+        this.socket.on("message", async (data) => {
             try {
-                console.log(data.toString());
                 let object: Format<"receive", "perhaps"> = JSON.parse(
                     data.toString()
                 );
@@ -114,36 +113,36 @@ export class SocketConnection extends EventEmitter {
                     return this.handleServerData(object);
                 try {
                     if (
-                        (data.data_type === "error" ||
-                            data.data_type === "success") &&
-                        data.api === "response" &&
-                        data.id
+                        (object.data_type === "error" ||
+                            object.data_type === "success") &&
+                        object.api === "response" &&
+                        object.id
                     )
-                        return await this.requests[data.id](data.data);
+                        return await this.requests[object.id](object.data);
                     const DataModel =
                         receivables[
-                            data.data_type +
-                                (data.api === "request" ||
-                                data.api === "response"
-                                    ? "." + data.api
+                            object.data_type +
+                                (object.api === "request" ||
+                                object.api === "response"
+                                    ? "." + object.api
                                     : "")
                         ];
                     if (!DataModel) return;
                     if (
                         !(typeof DataModel.acceptables === "object"
-                            ? DataModel.acceptables.includes(data.from)
-                            : DataModel.acceptables === data.from)
+                            ? DataModel.acceptables.includes(object.from)
+                            : DataModel.acceptables === object.from)
                     )
                         return;
-                    new DataModel.model(data.data);
-                    setTimeout(() => DataModel.cb?.(data.data));
+                    new DataModel.model(object.data);
+                    setTimeout(() => DataModel.cb?.(object.data));
                 } catch (error) {
                     if (error instanceof TypeError) return console.error(error);
-                    if (data.from) console.log("Vfh");
+                    if (object.from) console.log("Vfh");
                 }
             } catch (error) {
                 console.log("Foo");
-                // if (error instanceof SyntaxError) console.log(data.toString());
+                if (error instanceof SyntaxError) console.log(data.toString());
             }
         });
     }
