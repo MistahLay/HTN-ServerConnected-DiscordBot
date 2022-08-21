@@ -1,5 +1,6 @@
 import { APIEmbed, Colors, Message } from "discord.js";
 import fs from "fs";
+type LiteralUnion<T extends U, U = string> = T | (U & {});
 export class Command {
     info: string = "";
     isInvisible: boolean = false;
@@ -14,7 +15,9 @@ export class Command {
         this.info = info;
         return this;
     }
-    setParamType(types: { name: string; type: "string" | "number" }[]) {
+    setParamType(
+        types: { name: string; type: LiteralUnion<"string" | "number"> }[]
+    ) {
         this.paramType = types;
         return this;
     }
