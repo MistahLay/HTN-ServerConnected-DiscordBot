@@ -1,6 +1,7 @@
 import { ActivityType, Client, Colors, Message } from "discord.js";
 import { commands, registerCommands } from "./BotCommand";
 import { SocketConnection } from "./SocketConnection";
+import mysql from "mysql";
 require("dotenv").config({ path: __dirname + "/.env" });
 const token = process.env.TOKEN;
 
@@ -8,6 +9,13 @@ export const client = new Client({
     intents: ["Guilds", "GuildMessages", "DirectMessages", "MessageContent"],
 });
 export const socket = new SocketConnection();
+export const db = mysql.createConnection({
+    host: "localhost",
+    port: 3306,
+    database: "ServerDatabase",
+    user: "sqluser",
+    password: "password",
+});
 socket.on("Connected", () => {
     client.user?.setActivity("Main Server Socket", {
         type: ActivityType.Listening,
