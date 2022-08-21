@@ -1,11 +1,11 @@
 {
-    "StaffServer":{
-        "IslandLogs":"982109937767432242",
+    "StaffServer": {
+        "IslandLogs": "982109937767432242",
         "ModLogs": "979998849089306624",
         "PlayerLogs": "982109595763867708",
-        "EconomyLogs": "983350777152147586"
+        "EconomyLogs": "983350777152147586",
+        "ServerStatus": "979565116964094002",
+        "CrashLogs": "983350499854139403"
     },
-    "MainServer":{
-
-    }
+    "MainServer": {}
 }

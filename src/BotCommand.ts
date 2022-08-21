@@ -38,7 +38,7 @@ export let commandsInfo: APIEmbed = {
 
 export const commands: { [key: string]: Command } = {};
 
-export async function getCommands(): Promise<{ [key: string]: Command }> {
+export async function registerCommands(): Promise<{ [key: string]: Command }> {
   return new Promise((r) => {
     fs.readdirSync(__dirname + "/Commands", { withFileTypes: true })
       .filter((value) => value.isFile())

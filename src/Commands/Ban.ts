@@ -3,30 +3,45 @@ import { Command } from "../BotCommand";
 import { socket } from "../Client";
 module.exports = new Command()
     .setInfo("This will ban a player in the ingame server")
-    .setParamType([{name: "player", type: "string"}, {name: "reason", type: "string"}])
+    .setParamType([
+        { name: "player", type: "string" },
+        { name: "reason", type: "string" },
+    ])
     .setRequiredServerOnline(true)
     .onExecute(async (msg, [player, reason]) => {
-        const reply = (await msg.reply("**Sending Request...**"));
+        const reply = await msg.reply("**Sending Request...**");
         const username = msg.author.username;
-        socket.sendRequest({
-            data_type: "PlayerPunish",
-            data: {
-                player,
-                reason,
-                staff: username,
-                type: "ban"
+        socket.sendRequest(
+            {
+                data_type: "PlayerPunish",
+                data: {
+                    player,
+                    reason,
+                    staff: username,
+                    type: "ban",
+                },
+                to: "Pocketmine",
             },
-            to: "Pocketmine"
-        }, async (data:string|null) => {
-            if (data) return await reply.edit(data);
-            await reply.delete();
-            await msg.reply({
-                content: "",
-                embeds:[{
-                title: "Server Ban",
-                color: Colors.Red,
-                description: `${player} was permanently banned by ${username}`
-            }]});
-            return;
-        })
-    })
+            async (data: string | null) => {
+                if (data) return await reply.edit(data);
+                await reply.delete();
+                await msg.reply({
+                    content: "",
+                    embeds: [
+                        {
+                            title: "Server Ban",
+                            color: Colors.Red,
+                            description: `${player} was permanently banned by ${username}`,
+                            fields: [
+                                {
+                                    name: "Reason",
+                                    value: reason,
+                                },
+                            ],
+                        },
+                    ],
+                });
+                return;
+            }
+        );
+    });

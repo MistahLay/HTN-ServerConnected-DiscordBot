@@ -4,7 +4,7 @@ import WebSocket from "ws";
 // import { ApiFormat, Format } from "./DataFormats";
 import { getReceivables, Receivable } from "./RegisterReceivables";
 type AnyObject = { [key: string | symbol | number]: any };
-type LiteralUnion<T extends U, U = string> = T | (U & {});
+import fs from "fs";
 type ResponseTypes = "response-error" | "response-success" | "response";
 interface FormatInterface {
     data_type: string;
@@ -71,7 +71,7 @@ export class SocketConnection extends EventEmitter {
         password: "109214947836572",
     };
     private socket: WebSocket = new WebSocket(
-        `ws://${this.sockInfo.ip}:${this.sockInfo.port}`
+        `wss://${this.sockInfo.ip}:${this.sockInfo.port}`
     );
     requests: { [key: string]: (data: any) => void } = {};
     constructor() {
@@ -80,14 +80,14 @@ export class SocketConnection extends EventEmitter {
     public handleConnection(CreateNewSocket: boolean = false): void {
         if (CreateNewSocket)
             this.socket = new WebSocket(
-                `ws://${this.sockInfo.ip}:${this.sockInfo.port}`
+                `wss://localhost:${this.sockInfo.port}`,
+                {cert: fs.readFileSync(__dirname + "/cert.pem")}
             );
         this.handleSentData();
         this.socket
             .once("close", () => {
                 this.emit("Disconnect", null);
-                setTimeout(() => {
-                    this.socket.removeAllListeners();
+                this.interval = setInterval(() => {
                     this.handleConnection(true);
                 }, 10000);
             })
