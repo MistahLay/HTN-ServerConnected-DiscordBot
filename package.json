@@ -1,10 +1,14 @@
 {
   "dependencies": {
+    "@mcpedb/query": "^1.0.3",
+    "@types/mysql": "^2.15.21",
     "@types/uuid": "^8.3.4",
-    "discord.js": "^14.0.3",
+    "discord.js": "^14.3.0",
     "dotenv": "^16.0.1",
+    "mysql": "^2.18.1",
     "objectmodel": "^4.3.0",
-    "strongly-typed": "^2.2.0",
-    "uuid": "^8.3.2"
-  }
+    "uuid": "^8.3.2",
+    "ws": "^8.8.1"
+  },
+  "module": "src\\Client.ts"
 }
