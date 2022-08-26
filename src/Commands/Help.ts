@@ -43,7 +43,7 @@ module.exports = new Command()
             if (commands[name].isInvisible) continue;
             commandsInfo.fields.push({
                 name: name.charAt(0).toUpperCase() + name.slice(1),
-                value: "``c?" + name + "`` " + get(commands[name].paramType),
+                value: "``>" + name + "`` " + get(commands[name].paramType),
             });
         }
         msg.reply({ embeds: [commandsInfo] });
