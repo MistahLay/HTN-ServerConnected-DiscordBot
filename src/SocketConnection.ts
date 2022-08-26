@@ -4,7 +4,6 @@ import WebSocket from "ws";
 // import { ApiFormat, Format } from "./DataFormats";
 import { getReceivables, Receivable } from "./RegisterReceivables";
 type AnyObject = { [key: string | symbol | number]: any };
-import fs from "fs";
 type ResponseTypes = "response-error" | "response-success" | "response";
 interface FormatInterface {
     data_type: string;
@@ -70,35 +69,42 @@ export class SocketConnection extends EventEmitter {
         name: "DiscordBot",
         password: "109214947836572",
     };
-    private socket: WebSocket = new WebSocket(
-        `wss://${this.sockInfo.ip}:${this.sockInfo.port}`
-    );
+    private socket?: WebSocket;
     requests: { [key: string]: (data: any) => void } = {};
-    constructor() {
-        super();
-    }
     public handleConnection(CreateNewSocket: boolean = false): void {
-        if (CreateNewSocket)
-            this.socket = new WebSocket(
-                `wss://localhost:${this.sockInfo.port}`,
-                {cert: fs.readFileSync(__dirname + "/cert.pem")}
-            );
-        this.handleSentData();
-        this.socket
-            .once("close", () => {
-                this.emit("Disconnect", null);
-                this.interval = setInterval(() => {
-                    this.handleConnection(true);
-                }, 10000);
-            })
-            .once("error", () => {})
-            .send(
+        try {
+            if (CreateNewSocket)
+                try {
+                    this.socket = new WebSocket(
+                        `ws://localhost:${this.sockInfo.port}`
+                    );
+                } catch (error) {
+                    setTimeout(() => {
+                        this.handleConnection(true);
+                    }, 10000);
+                    return;
+                }
+            this.handleSentData();
+            this.socket
+                ?.once("close", () => {
+                    setTimeout(() => {
+                        this.handleConnection(true);
+                    }, 10000);
+                    this.removeAllListeners();
+                })
+                .once("error", () => {});
+            this.socket?.send(
                 JSON.stringify({
                     name: this.sockInfo.name,
                     password: this.sockInfo.password,
                 })
             );
-        this.emit("Connected", null);
+            this.emit("Connected", null);
+        } catch (error) {
+            setTimeout(() => {
+                this.handleConnection(true);
+            }, 10000);
+        }
     }
 
     private async handleSentData(): Promise<void> {
@@ -172,7 +178,7 @@ export class SocketConnection extends EventEmitter {
         data.id = v4();
         if (this.requests[data.id]) return this.sendRequest(data, cbResponse);
         this.requests[data.id] = cbResponse;
-        this.socket.send(JSON.stringify(data));
+        this.socket?.send(JSON.stringify(data));
     }
 
     public sendResponse(
