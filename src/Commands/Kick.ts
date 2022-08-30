@@ -1,7 +1,6 @@
-import { Colors } from "discord.js";
+import { Colors, TextChannel } from "discord.js";
 import { Command } from "../BotCommand";
-import { socket } from "../Client";
-
+import { channels, socket } from "../Client";
 module.exports = new Command()
     .setInfo("This will ban a player in the ingame server")
     .setParamType([
@@ -21,9 +20,9 @@ module.exports = new Command()
                 },
                 to: "Pocketmine",
             },
-            (data: string | null) => {
+            async (data: string | null) => {
                 if (data) return reply.edit(data);
-                reply.edit({
+                const embed = {
                     content: "",
                     embeds: [
                         {
@@ -38,7 +37,9 @@ module.exports = new Command()
                             ],
                         },
                     ],
-                });
+                };
+                await reply.edit(embed);
+                await channels.ModLogs.send(embed);
             }
         );
     });

@@ -1,6 +1,7 @@
 import { Colors } from "discord.js";
 import { Command } from "../BotCommand";
 import { socket } from "../Client";
+import { channels } from "../Client";
 
 module.exports = new Command()
     .setInfo("This will ban a player in the ingame server")
@@ -31,7 +32,7 @@ module.exports = new Command()
             },
             async (data: string | null) => {
                 if (data) return await reply.edit(data);
-                await reply.edit({
+                const embed = {
                     content: "",
                     embeds: [
                         {
@@ -50,7 +51,9 @@ module.exports = new Command()
                             ],
                         },
                     ],
-                });
+                };
+                await reply.edit(embed);
+                await channels.ModLogs.send(embed);
             }
         );
     });
