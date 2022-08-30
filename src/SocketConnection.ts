@@ -1,3 +1,4 @@
+import { DataResolver } from "discord.js";
 import EventEmitter from "events";
 import { v4 } from "uuid";
 import WebSocket from "ws";
@@ -72,27 +73,10 @@ export class SocketConnection extends EventEmitter {
     private socket?: WebSocket;
     requests: { [key: string]: (data: any) => void } = {};
     public handleConnection(CreateNewSocket: boolean = false): void {
-        try {
-            if (CreateNewSocket)
-                try {
-                    this.socket = new WebSocket(
-                        `ws://localhost:${this.sockInfo.port}`
-                    );
-                } catch (error) {
-                    setTimeout(() => {
-                        this.handleConnection(true);
-                    }, 10000);
-                    return;
-                }
-            this.handleSentData();
-            this.socket
-                ?.once("close", () => {
-                    setTimeout(() => {
-                        this.handleConnection(true);
-                    }, 10000);
-                    this.removeAllListeners();
-                })
-                .once("error", () => {});
+        if (CreateNewSocket)
+            this.socket = new WebSocket(`ws://localhost:${this.sockInfo.port}`);
+        this.handleSentData();
+        this.socket?.once("open", () => {
             this.socket?.send(
                 JSON.stringify({
                     name: this.sockInfo.name,
@@ -100,11 +84,16 @@ export class SocketConnection extends EventEmitter {
                 })
             );
             this.emit("Connected", null);
-        } catch (error) {
-            setTimeout(() => {
-                this.handleConnection(true);
-            }, 10000);
-        }
+        });
+        this.socket
+            ?.once("close", () => {
+                setTimeout(() => {
+                    this.handleConnection(true);
+                }, 10000);
+                this.emit("Disconnect", null);
+                this.removeAllListeners();
+            })
+            .once("error", () => {});
     }
 
     private async handleSentData(): Promise<void> {
@@ -140,8 +129,10 @@ export class SocketConnection extends EventEmitter {
                             : DataModel.acceptables === object.from)
                     )
                         return;
+                    if (object.api && object.id)
+                        return await this.requests[object.id](object.data);
+
                     new DataModel.model(object.data);
-                    setTimeout(() => DataModel.cb?.(object.data));
                 } catch (error) {
                     if (error instanceof TypeError) return console.error(error);
                     if (object.from) console.log("Vfh");
