@@ -49,7 +49,7 @@ module.exports = new Command()
         msg.reply({ embeds: [commandsInfo] });
     })
     .setInvisible(true);
-function get(param: { name: string; type: string }[]): string {
+function get(param: { name: string; type: string | string[] }[]): string {
     let str = "";
     param.forEach((v) => {
         str += ` <${v.name}>`;
