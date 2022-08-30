@@ -1,11 +1,11 @@
-import { ActivityType, Client, Colors, Message } from "discord.js";
+import { ActivityType, Client, Colors, Message, TextChannel } from "discord.js";
 import { commands, registerCommands } from "./BotCommand";
 import { SocketConnection } from "./SocketConnection";
 import mysql from "mysql";
 import dotenv from "dotenv";
+
 dotenv.config({ path: __dirname + "/.env" });
 const token = process.env.TOKEN;
-
 export const client = new Client({
     intents: ["Guilds", "GuildMessages", "DirectMessages", "MessageContent"],
 });
@@ -18,6 +18,7 @@ export const db = mysql.createPool({
     password: "password",
     multipleStatements: true,
 });
+export const channels: { [key: string]: TextChannel } = {};
 socket.on("Connected", () => {
     client.user?.setActivity("Main Server Socket", {
         type: ActivityType.Listening,
@@ -29,6 +30,7 @@ socket.on("Disconnect", () => {
     console.log("Disconnected");
 });
 client.once("ready", async () => {
+    await registerChannels();
     client.user?.setActivity();
     socket.handleConnection(true);
     await registerCommands();
@@ -82,23 +84,51 @@ async function CommandValidator(msg: Message) {
         return;
     }
     for (let index = 0; index < cmd.paramType.length; index++) {
-        if (
-            cmd.paramType[index].type === "number" &&
-            isNaN(args[index] as any)
-        ) {
-            msg.reply({
-                embeds: [
-                    {
-                        title: "Command Error",
-                        color: Colors.Red,
-                        description: `Parameter <${cmd.paramType[index].name}> must be a number, given string`,
-                    },
-                ],
-            });
-            return;
+        switch (cmd.paramType[index].type) {
+            case "number":
+                if (isNaN(args[index] as any))
+                    return msg.reply({
+                        embeds: [
+                            {
+                                title: "Command Error",
+                                color: Colors.Red,
+                                description: `Parameter <${cmd.paramType[index].name}> must be a number, given string`,
+                            },
+                        ],
+                    });
+                break;
+            case "string":
+                break;
+            default:
+                if (!cmd.paramType[index].type.includes(args[index]))
+                    return msg.reply({
+                        embeds: [
+                            {
+                                title: "Command Error",
+                                color: Colors.Red,
+                                description: `Parameter <${
+                                    cmd.paramType[index].name
+                                }> must be ${cmd.paramType[
+                                    index
+                                ].type.toString()} of these, given ${
+                                    args[index]
+                                }`,
+                            },
+                        ],
+                    });
+                break;
         }
     }
     await cmd.execute?.(msg, args);
 }
-
+async function registerChannels() {
+    const rwchannels = require("./channels.json").StaffServer as {
+        [key: string]: string;
+    };
+    for (const key in rwchannels) {
+        channels[key] = client.channels.cache.get(
+            rwchannels[key]
+        ) as TextChannel;
+    }
+}
 client.login(token);
