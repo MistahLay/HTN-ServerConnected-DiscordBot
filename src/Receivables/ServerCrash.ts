@@ -1,17 +1,15 @@
-import { Colors, TextChannel } from "discord.js";
+import { Colors } from "discord.js";
 import { ObjectModel } from "objectmodel";
-import { client } from "../Client";
+import { channels } from "../Client";
 import { Receivable } from "../RegisterReceivables";
+const channel = channels.CrashLogs;
 module.exports = new Receivable(
     new ObjectModel({
         crash_reason: String,
     }),
     "Pocketmine"
 ).setCallback((data: { crash_reason: string }) => {
-    const crashLogChannel = client.channels.cache.get(
-        require("../channels.json").StaffServer.CrashLogs
-    ) as TextChannel;
-    crashLogChannel.send({
+    channel.send({
         embeds: [
             {
                 title: "Server Crash",
