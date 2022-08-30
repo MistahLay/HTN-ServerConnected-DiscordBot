@@ -1,12 +1,17 @@
 import { APIEmbed, Colors, Message } from "discord.js";
 import fs from "fs";
-type LiteralUnion<T extends U, U = string> = T | (U & {});
+type LiteralUnion<T extends U, U = string[] | string> = T | (U & {});
+type paramType = {
+    name: string;
+    type: LiteralUnion<"string" | "number">;
+    optional?: true;
+}[];
 export class Command {
     info: string = "";
     isInvisible: boolean = false;
     requiredServerOnline: boolean = true;
     execute?: (msg: Message, args: string[]) => void;
-    paramType: { name: string; type: string }[] = [];
+    paramType: { name: string; type: string | string[] }[] = [];
     onExecute(execute: (msg: Message, args: string[]) => void) {
         this.execute = execute;
         return this;
@@ -15,9 +20,7 @@ export class Command {
         this.info = info;
         return this;
     }
-    setParamType(
-        types: { name: string; type: LiteralUnion<"string" | "number"> }[]
-    ) {
+    setParamType(types: paramType) {
         this.paramType = types;
         return this;
     }
