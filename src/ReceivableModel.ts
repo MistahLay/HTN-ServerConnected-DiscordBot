@@ -1,15 +1,19 @@
 import fs from "fs";
-import { ObjectModel } from "objectmodel";
-
-export class Receivable {
-    public cb?: (data: any) => void;
-    constructor(
-        public model: ObjectModel,
-        public acceptables: String | string[]
-    ) {
-        if (!(model instanceof ObjectModel)) throw new Error("Invalid model");
+import { ArrayModel, ObjectModel } from "objectmodel";
+type onReceive<IS_API extends boolean> = IS_API extends true
+    ? (data: any, id: string) => void
+    : (data: any) => void;
+export class Receivable<IS_API extends boolean = false> {
+    public cb: onReceive<IS_API> = () => {};
+    public model: ObjectModel | ArrayModel | "string" | "number" | "boolean";
+    constructor(model: Object | "string" | "number" | "boolean" | any[]) {
+        this.model = Array.isArray(model)
+            ? new ArrayModel(model)
+            : typeof model === "object"
+            ? new ObjectModel(model)
+            : model;
     }
-    setCallback(cb: (data: any) => void): this {
+    onReceive(cb: onReceive<IS_API>): this {
         this.cb = cb;
         return this;
     }
