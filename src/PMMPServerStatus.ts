@@ -1,6 +1,8 @@
 import query from "@mcpedb/query";
 import { APIEmbed, Colors, Message, TextChannel } from "discord.js";
+import { Server } from "ws";
 import { client, socket } from "./Client";
+import { ServerSocket } from "./ServerSocket";
 const channel = client.channels.cache.get(
     require("./channels.json").StaffServer.ServerStatus
 ) as TextChannel;
@@ -48,19 +50,27 @@ setInterval(async () => {
             };
             ServerStatus.fields[1] = {
                 name: "Socket",
-                value: socket.isPMMPOnline() ? "Online" : "Offline",
+                value: socket.isOnline() ? "Alive" : "Dead",
             };
         }
         ServerStatus.title = "Server Status: Online :green_circle:";
-        ServerStatus.color = Colors.Green;
+        ServerStatus.color = socket.isOnline() ? Colors.Green : Colors.Yellow;
         if (ServerStatus.footer)
             ServerStatus.footer.text = "version: " + server.version;
         if (message) return await message.edit({ embeds: [ServerStatus] });
         await channel.send({ embeds: [ServerStatus] });
     } catch (error) {
-        ServerStatus.fields = [];
-        ServerStatus.color = Colors.Red;
+        if (ServerStatus.fields) {
+            ServerStatus.fields[0] = {
+                name: "Socket",
+                value: socket.isOnline() ? "Alive" : "Dead",
+            };
+        }
         ServerStatus.title = "Server Status: Offline :red_circle:";
+        ServerStatus.description = "@everyone THERE IS SOMETHING WRONG";
+        ServerStatus.color = socket.isOnline() ? Colors.Red : Colors.Orange;
+        if (ServerStatus.footer)
+            ServerStatus.footer.text = "version: " + "unknown";
         if (message) return await message.edit({ embeds: [ServerStatus] });
         await channel.send({ embeds: [ServerStatus] });
     }
