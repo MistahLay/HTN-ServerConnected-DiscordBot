@@ -1,35 +1,45 @@
-import { APIEmbed, Colors, Message } from "discord.js";
+import { APIEmbed, APIEmbedField, Colors, Message } from "discord.js";
 import fs from "fs";
 type LiteralUnion<T extends U, U = string[] | string> = T | (U & {});
-type paramType = {
+type Parameters = {
     name: string;
-    type: LiteralUnion<"string" | "number">;
-    optional?: true;
-}[];
+    info?: string;
+    rest?: true;
+};
 export class Command {
+    fields: APIEmbedField[] = [];
     info: string = "";
-    isInvisible: boolean = false;
-    requiredServerOnline: boolean = true;
     execute?: (msg: Message, args: string[]) => void;
-    paramType: { name: string; type: string | string[] }[] = [];
-    onExecute(execute: (msg: Message, args: string[]) => void) {
+    parameters: Parameters[] = [];
+    optionalParameters: Parameters[] = [];
+    roles: string[] = [];
+    constructor(
+        public requiredServerOnline: boolean = true,
+        public isInvisible: boolean = false
+    ) {}
+    onExecute(execute: (msg: Message, args: any[]) => void) {
         this.execute = execute;
         return this;
     }
     setInfo(info: string) {
+        if (this.isInvisible) return this;
         this.info = info;
         return this;
     }
-    setParamType(types: paramType) {
-        this.paramType = types;
+    setParameters(parameters: Parameters[]) {
+        this.parameters = parameters;
+        let paramInfo = "";
+        for (const i of parameters) {
+            paramInfo += `${i.name}: ${i.info}\n`;
+        }
+        this.fields[0] = {
+            name: "Arguments",
+            value: paramInfo,
+        };
         return this;
     }
-    setInvisible(set: boolean) {
-        this.isInvisible = set;
-        return this;
-    }
-    setRequiredServerOnline(b: boolean) {
-        this.requiredServerOnline = b;
+    setRoles(...roles: string[]) {
+        this.roles = roles;
         return this;
     }
 }
