@@ -1,4 +1,4 @@
-import { AttachmentBuilder, Colors } from "discord.js";
+import { APIEmbed, APIEmbedField, AttachmentBuilder, Colors } from "discord.js";
 import { Command } from "../BotCommand";
 import { socket } from "../Client";
 import GetPlayerFace from "../Utils/GetPlayerFace";
@@ -7,7 +7,10 @@ export interface Player {
     is_staff: boolean;
     island_id?: string;
     play_time: number;
-    money: number;
+    money: {
+        current_place: number;
+        amount: number;
+    };
     kill_stat: {
         current_place: number;
         kills: number;
@@ -37,91 +40,80 @@ const Banned = new AttachmentBuilder("./Utils/Banned.png").setName(
 const Temporary_Banned = new AttachmentBuilder("./Utils/TempBan.png").setName(
     "status.png"
 );
+const statusIcon = {
+    online: OnlineIcon,
+    banned: Banned,
+    offline: OfflineIcon,
+    temporary_banned: Temporary_Banned,
+};
+const status = {
+    online: "Online",
+    offline: "Offline",
+    banned: "Banned",
+    temporary_banned: "Temporarily Banned",
+};
+const QueryInfo = "is_banned";
 module.exports = new Command()
     .setInfo("This will ban a player in the ingame server")
-    .setParamType([{ name: "player", type: "string" }])
-    .onExecute((msg, [player]) => {
+    .setParameters([
+        {
+            name: "Player",
+            info: "Replace spaces of the name with + or use an XUID",
+        },
+        { name: "Queries", info: QueryInfo },
+    ])
+    .onExecute((msg, [player, queries]) => {
+        const name = (player as string).replace("+", " ");
+        const query = (queries as string[]).includes("all")
+            ? "all"
+            : (queries as string[]);
         socket.sendRequest(
             {
                 data: {
-                    player,
+                    player: name,
+                    queries: query,
                 },
                 data_type: "GetPlayerInfo",
-                to: "Pocketmine",
             },
             async (data: Player) => {
-                console.log(data);
                 const face = await GetPlayerFace(data.face);
+                let fields: APIEmbedField[] = [];
+                if (query === "all") {
+                    fields[0] = {
+                        name: "Identifiers(IDs)",
+                        value: `**XUID**: ${data.xuid}\n**Discord**: ${
+                            data.discord ?? "Not Connected"
+                        }\n**Island**: ${
+                            data.island_id ?? "Haven't joined an Island"
+                        }`,
+                    };
+                    fields[1] = {
+                        name: "Leaderboard Rank",
+                        value: `**Kills**: ${data.kill_stat.current_place}\n**Money**: ${data.money.current_place}`,
+                    };
+                    fields[2] = {
+                        name: "Friends",
+                        value: data.friends.toString(),
+                    };
+                    fields[3] = {
+                        name: "Others",
+                        value: `**Money**: $${data.money.amount}\n**Bank Money**: $${data.bank_money}\n**Kills**: ${data.kill_stat.kills}\n**Votes**: ${data.votes}\n**Ranks**: ${data.rank}`,
+                    };
+                }
                 try {
-                    await msg.reply({
-                        embeds: [
-                            {
-                                title: `${
-                                    data.is_staff ? "Staff Member: " : ""
-                                }${player} (${data.rank.toUpperCase()}) info`,
-                                color: Colors.Green,
-                                thumbnail: { url: "attachment://face.png" },
-                                description:
-                                    "The list of info about the player",
-                                fields: [
-                                    {
-                                        name: "Identifiers(IDs)",
-                                        value: `**XUID**: ${
-                                            data.xuid
-                                        }\n**Discord**: ${
-                                            data.discord ?? "Not Connected"
-                                        }\n**Island**: ${
-                                            data.island_id ??
-                                            "Haven't joined an island"
-                                        }`,
-                                    },
-                                    {
-                                        name: "Leaderboard Rank",
-                                        value: `**Kills**: #${data.kill_stat.current_place}\n**Money**: #${data.money}`,
-                                    },
-                                    {
-                                        name: "Friends",
-                                        value:
-                                            data.friends.length === 0
-                                                ? "0 friends :("
-                                                : data.friends.toString(),
-                                    },
-                                    {
-                                        name: "Others",
-                                        value: `**Money**: $${data.money}\n**Bank Money**: $${data.bank_money}\n**Kills**: ${data.kill_stat.kills}\n**Votes**: ${data.votes}`,
-                                    },
-                                ],
-                                footer: {
-                                    icon_url: "attachment://status.png",
-                                    text:
-                                        (data.status === "temporary_banned"
-                                            ? "Temporarily Banned"
-                                            : data.status
-                                                  .charAt(0)
-                                                  .toUpperCase() +
-                                              data.status.slice(1)) +
-                                        (data.status === "temporary_banned"
-                                            ? data.ban_expiration
-                                                ? `${data.ban_expiration.days} days, 
-                                                ${data.ban_expiration.hours} hours, 
-                                                ${data.ban_expiration.minutes} minutes`
-                                                : "No expiration given"
-                                            : "") +
-                                        " • Play Time:" +
-                                        data.play_time,
-                                },
-                            },
-                        ],
-                        files: [
-                            face,
-                            data.status === "online"
-                                ? OnlineIcon
-                                : data.status === "banned"
-                                ? Banned
-                                : data.status === "temporary_banned"
-                                ? Temporary_Banned
-                                : OfflineIcon,
-                        ],
+                    const embed: APIEmbed = {
+                        title: `${name.toUpperCase()}'s INFO`,
+                        description: "The queried info",
+                        fields,
+                        footer: {
+                            text: `${status[data.status]} • Play Time: ${
+                                data.play_time
+                            }`,
+                        },
+                    };
+                    msg.reply({
+                        embeds: [embed],
+                        files: [face, statusIcon[data.status]],
                     });
                 } catch (error) {
                     console.error(error);

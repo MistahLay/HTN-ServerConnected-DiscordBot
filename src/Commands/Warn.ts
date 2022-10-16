@@ -1,13 +1,12 @@
 import { Colors } from "discord.js";
 import { Command } from "../BotCommand";
-import { socket } from "../Client";
-import { channels } from "../Client";
+import { socket, channels } from "../Client";
 
 module.exports = new Command()
     .setInfo("This will ban a player in the ingame server")
-    .setParamType([
-        { name: "player", type: "string" },
-        { name: "reason", type: "string" },
+    .setParameters([
+        { name: "player", info: "Use the XUID" },
+        { name: "reason" },
     ])
     .onExecute(async (msg, [player, reason]) => {
         const reply = await msg.reply("**Sending Request...**");
@@ -20,7 +19,6 @@ module.exports = new Command()
                     staff: msg.author.username,
                     type: "warn",
                 },
-                to: "Pocketmine",
             },
             async (data: string | null) => {
                 if (data) return await reply.edit(data);
@@ -44,5 +42,4 @@ module.exports = new Command()
                 await channels.ModLogs.send(embed);
             }
         );
-    })
-    .setInvisible(true);
+    });

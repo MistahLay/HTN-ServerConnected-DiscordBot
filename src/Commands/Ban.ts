@@ -1,14 +1,12 @@
 import { Colors } from "discord.js";
 import { Command } from "../BotCommand";
-import { socket } from "../Client";
-import { channels } from "../Client";
-module.exports = new Command()
+import { socket, channels } from "../Client";
+module.exports = new Command(true)
     .setInfo("This will ban a player in the ingame server")
-    .setParamType([
-        { name: "player", type: "string" },
-        { name: "reason", type: "string" },
+    .setParameters([
+        { name: "player", info: "Recommended to use the player's XUID" },
+        { name: "reason" },
     ])
-    .setRequiredServerOnline(true)
     .onExecute(async (msg, [player, reason]) => {
         const reply = await msg.reply("**Sending Request...**");
         const username = msg.author.username;
@@ -21,7 +19,6 @@ module.exports = new Command()
                     staff: username,
                     type: "ban",
                 },
-                to: "Pocketmine",
             },
             async (data: string | null) => {
                 if (data) return await reply.edit(data);

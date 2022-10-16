@@ -3,9 +3,9 @@ import { Command } from "../BotCommand";
 import { channels, socket } from "../Client";
 module.exports = new Command()
     .setInfo("This will ban a player in the ingame server")
-    .setParamType([
-        { name: "player", type: "string" },
-        { name: "reason", type: "string" },
+    .setParameters([
+        { name: "player", info: "Use the XUID" },
+        { name: "reason" },
     ])
     .onExecute(async (msg, [player, reason]) => {
         const reply = await msg.reply("**Sending Request...**");
@@ -18,7 +18,6 @@ module.exports = new Command()
                     staff: msg.author.username,
                     type: "kick",
                 },
-                to: "Pocketmine",
             },
             async (data: string | null) => {
                 if (data) return reply.edit(data);
