@@ -1,7 +1,7 @@
 import { Colors } from "discord.js";
 import { ObjectModel } from "objectmodel";
 import { channels } from "../Client";
-import { Receivable } from "../RegisterReceivables";
+import { Receivable } from "../ReceivableModel";
 
 export interface IslandPlayersEvent {
     islandID: string;
@@ -10,15 +10,12 @@ export interface IslandPlayersEvent {
     punisher?: string;
 }
 const channel = channels.PlayerLogs;
-module.exports = new Receivable(
-    new ObjectModel({
-        islandID: String,
-        player: String,
-        event: ["banned", "kicked", "invited", "left", "demoted", "promoted"],
-        punisher: String,
-    }),
-    "Pocketmine"
-).setCallback((data: IslandPlayersEvent) => {
+module.exports = new Receivable<true>({
+    islandID: String,
+    player: String,
+    event: ["banned", "kicked", "invited", "left", "demoted", "promoted"],
+    punisher: String,
+}).onReceive((data: IslandPlayersEvent) => {
     channel.send({
         embeds: [
             {

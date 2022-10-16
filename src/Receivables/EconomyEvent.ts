@@ -1,7 +1,7 @@
 import { Colors, TextChannel } from "discord.js";
 import { ObjectModel } from "objectmodel";
 import { client } from "../Client";
-import { Receivable } from "../RegisterReceivables";
+import { Receivable } from "../ReceivableModel";
 type Events = "pay" | "auction" | "shop" | "sold";
 export interface EconomyEvent {
     player: string;
@@ -11,17 +11,14 @@ export interface EconomyEvent {
     item?: string;
     amount?: number;
 }
-module.exports = new Receivable(
-    new ObjectModel({
-        player: String,
-        event: ["pay", "auction", "shop", "sold"],
-        money: Number,
-        receiver: [String],
-        item: [String],
-        amount: [Number],
-    }),
-    "Pocketmine"
-).setCallback((data: EconomyEvent) => {
+module.exports = new Receivable({
+    player: String,
+    event: ["pay", "auction", "shop", "sold"],
+    money: Number,
+    receiver: [String],
+    item: [String],
+    amount: [Number],
+}).onReceive((data: EconomyEvent) => {
     (
         client.channels.cache.get(
             require("../channels.json").StaffServer.EconomyLogs

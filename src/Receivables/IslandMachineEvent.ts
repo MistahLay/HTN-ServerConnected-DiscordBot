@@ -1,7 +1,7 @@
 import { Colors } from "discord.js";
 import { ObjectModel } from "objectmodel";
 import { channels } from "../Client";
-import { Receivable } from "../RegisterReceivables";
+import { Receivable } from "../ReceivableModel";
 import { CoordinateInterface, Model } from "../Utils/CoordinateModel";
 const channel = channels.IslandLogs;
 export interface IslandMachineEvent {
@@ -12,17 +12,14 @@ export interface IslandMachineEvent {
     event: "removed" | "placed";
     level: string;
 }
-module.exports = new Receivable(
-    new ObjectModel({
-        islandID: String,
-        machine: ["drill", "net", "cannon"],
-        owner: String,
-        location: Model,
-        event: ["removed", "placed"],
-        level: Number,
-    }),
-    "Pocketmine"
-).setCallback((data: IslandMachineEvent) => {
+module.exports = new Receivable({
+    islandID: String,
+    machine: ["drill", "net", "cannon"],
+    owner: String,
+    location: Model,
+    event: ["removed", "placed"],
+    level: Number,
+}).onReceive((data: IslandMachineEvent) => {
     channel.send({
         embeds: [
             {

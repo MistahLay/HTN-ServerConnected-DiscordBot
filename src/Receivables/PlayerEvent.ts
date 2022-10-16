@@ -1,7 +1,7 @@
 import { Colors } from "discord.js";
 import { ObjectModel } from "objectmodel";
 import { channels } from "../Client";
-import { Receivable } from "../RegisterReceivables";
+import { Receivable } from "../ReceivableModel";
 import { CoordinateInterface, Model } from "../Utils/CoordinateModel";
 export interface PlayerEvent {
     player: string;
@@ -13,18 +13,15 @@ export interface PlayerEvent {
     voteParty?: number;
 }
 
-module.exports = new Receivable(
-    new ObjectModel({
-        player: String,
-        event: ["dies", "join", "quit", "vote"],
-        position: [Model],
-        lastDamager: [String],
-        cause: [String],
-        isNew: [Boolean],
-        voteParty: [Number],
-    }),
-    "Pocketmine"
-).setCallback((data: PlayerEvent) => {
+module.exports = new Receivable({
+    player: String,
+    event: ["dies", "join", "quit", "vote"],
+    position: [Model],
+    lastDamager: [String],
+    cause: [String],
+    isNew: [Boolean],
+    voteParty: [Number],
+}).onReceive((data: PlayerEvent) => {
     const channel = channels.ModLogs;
     switch (data.event) {
         case "join":

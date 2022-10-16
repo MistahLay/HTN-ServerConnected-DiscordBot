@@ -1,7 +1,6 @@
-import { APIEmbed, Colors, TextChannel } from "discord.js";
-import { ObjectModel } from "objectmodel";
-import { channels, client } from "../Client";
-import { Receivable } from "../RegisterReceivables";
+import { APIEmbed, Colors } from "discord.js";
+import { channels } from "../Client";
+import { Receivable } from "../ReceivableModel";
 
 export interface PlayerPunishEvent {
     player: String;
@@ -15,22 +14,19 @@ export interface PlayerPunishEvent {
     staff: string;
 }
 const channel = channels.ModLogs;
-module.exports = new Receivable(
-    new ObjectModel({
-        player: String,
-        type: ["banned", "kicked", "muted", "warned", "tempbanned"],
-        time: [
-            {
-                days: Number,
-                hours: Number,
-                minutes: Number,
-            },
-        ],
-        reason: String,
-        staff: String,
-    }),
-    "Pocketmine"
-).setCallback((data: PlayerPunishEvent) => {
+module.exports = new Receivable({
+    player: String,
+    type: ["banned", "kicked", "muted", "warned", "tempbanned"],
+    time: [
+        {
+            days: Number,
+            hours: Number,
+            minutes: Number,
+        },
+    ],
+    reason: String,
+    staff: String,
+}).onReceive((data: PlayerPunishEvent) => {
     const embed: APIEmbed = {
         title: "PlayerPunished",
         color: Colors.DarkRed,

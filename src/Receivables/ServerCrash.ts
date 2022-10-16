@@ -1,14 +1,8 @@
 import { Colors } from "discord.js";
-import { ObjectModel } from "objectmodel";
 import { channels } from "../Client";
-import { Receivable } from "../RegisterReceivables";
+import { Receivable } from "../ReceivableModel";
 const channel = channels.CrashLogs;
-module.exports = new Receivable(
-    new ObjectModel({
-        crash_reason: String,
-    }),
-    "Pocketmine"
-).setCallback((data: { crash_reason: string }) => {
+module.exports = new Receivable("string").onReceive((data: string) => {
     channel.send({
         embeds: [
             {
@@ -18,7 +12,7 @@ module.exports = new Receivable(
                 fields: [
                     {
                         name: "Crash Reason",
-                        value: data.crash_reason,
+                        value: data,
                     },
                 ],
             },
